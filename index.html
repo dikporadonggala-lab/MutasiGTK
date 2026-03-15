@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Mutasi Internal GTK - Disdikpora Donggala</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -31,6 +35,18 @@
             .card { padding: 15px !important; }
             .nav-pills .nav-link { margin-bottom: 5px; }
             h4 { font-size: 1.2rem; }
+        }
+
+        /* Animasi 3D Card saat di-hover mouse */
+        .card-3d {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .card-3d:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+            z-index: 10;
         }
     </style>
 </head>
@@ -218,16 +234,18 @@
 
         <div id="adminSection" class="hidden">
             <div class="row mb-4">
-                <div class="col-md-6 mb-3">
-                    <div class="card p-3">
-                        <h5 class="text-center">Persentase Status</h5>
-                        <div style="height: 250px;"><canvas id="pieChart"></canvas></div>
+                <!-- Ukuran kolom Pie Chart di perkecil (col-md-4) -->
+                <div class="col-md-4 mb-3">
+                    <div class="card p-3 card-3d h-100">
+                        <h5 class="text-center border-bottom pb-2">Persentase Status</h5>
+                        <div style="height: 250px; position: relative;"><canvas id="pieChart"></canvas></div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <div class="card p-3">
-                        <h5 class="text-center">Mutasi per Kecamatan</h5>
-                        <div style="height: 250px;"><canvas id="barChart"></canvas></div>
+                <!-- Ukuran kolom Bar Chart di perlebar (col-md-8) agar 16 kecamatan muat -->
+                <div class="col-md-8 mb-3">
+                    <div class="card p-3 card-3d h-100">
+                        <h5 class="text-center border-bottom pb-2">Mutasi per Kecamatan</h5>
+                        <div style="height: 250px; position: relative;"><canvas id="barChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -257,7 +275,8 @@
                             </tr>
                         </thead>
                         <tbody class="text-center">
-                            </tbody>
+                            <!-- Data tabel -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -278,7 +297,8 @@
                     <div class="mb-3">
                         <label>Status</label>
                         <select class="form-select" id="modalStatus">
-                            </select>
+                            <!-- Injeksi JS -->
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label>Catatan Admin</label>
@@ -296,14 +316,32 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // =======================================================
-        // URL WEB APP TERBARU ANDA
-        // =======================================================
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyffhNF6yukoX6Va6N7T4BL-88O1lsbWPYvTgVbHQodTVy5YjFdhVKK8kI7MIIf4r7a/exec'; 
         
         let currentRole = '';
         let pegawaiTujuan = '';
         let pegawaiKecTujuan = ''; 
+
+        // CEK SESI (LOCAL STORAGE) SAAT HALAMAN DIMUAT (RELOAD)
+        window.addEventListener('DOMContentLoaded', () => {
+            const session = localStorage.getItem('mutasi_session');
+            if (session) {
+                const data = JSON.parse(session);
+                // Jika data ditemukan, isi form dan jalankan fungsi login otomatis
+                if (data.role === 'pegawai') {
+                    document.getElementById('nipInput').value = data.id;
+                    loginPegawai(true); // pass 'true' agar tidak muncul alert "Berhasil" dobel saat auto-login
+                } else if (data.role === 'admin') {
+                    document.getElementById('adminUser').value = data.id;
+                    document.getElementById('adminPass').value = data.pass;
+                    loginAdmin('admin', true);
+                } else if (data.role === 'kadis') {
+                    document.getElementById('kadisUser').value = data.id;
+                    document.getElementById('kadisPass').value = data.pass;
+                    loginAdmin('kadis', true);
+                }
+            }
+        });
 
         function updateFileName(input, labelId) {
             const fileName = input.files[0] ? input.files[0].name : "Belum ada file";
@@ -317,22 +355,26 @@
             reader.onerror = error => reject(error);
         });
 
-        const showLoading = () => {
-            Swal.fire({ title: 'Memproses Data...', html: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+        const showLoading = (pesan = 'Memproses Data...') => {
+            Swal.fire({ title: pesan, html: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
         };
 
         // --- LOGIN PEGAWAI ---
-        async function loginPegawai() {
+        async function loginPegawai(isAutoLogin = false) {
             const nip = document.getElementById('nipInput').value;
             if(!nip) return Swal.fire('Error', 'Masukkan NIP terlebih dahulu', 'error');
 
-            showLoading();
+            showLoading(isAutoLogin ? 'Memulihkan Sesi...' : 'Memproses Data...');
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', nip: nip }) });
                 const res = await response.json();
                 
                 if(res.status === 'success') {
                     Swal.close();
+                    
+                    // Simpan sesi agar tidak keluar saat refresh
+                    localStorage.setItem('mutasi_session', JSON.stringify({ role: 'pegawai', id: nip }));
+
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('pegawaiSection').classList.remove('hidden');
                     document.getElementById('btnLogout').classList.remove('hidden');
@@ -389,11 +431,11 @@
                         document.getElementById('viewStatusSection').classList.add('hidden');
                     }
                 } else if (res.status === 'error') {
+                    if(isAutoLogin) logout(); // Hapus sesi error jika gagal auto-login
                     Swal.fire('Gagal', res.message, 'error');
-                } else {
-                    Swal.fire('Backend Error', 'Terjadi kesalahan sistem, silakan coba beberapa saat lagi.', 'error');
                 }
             } catch(e) {
+                if(isAutoLogin) logout();
                 Swal.fire('Error', 'Gagal terhubung ke server. Pastikan koneksi internet stabil.', 'error');
             }
         }
@@ -518,10 +560,8 @@
             } catch(e) { Swal.fire('Error', 'Gagal mengunggah. Pastikan koneksi stabil.', 'error'); }
         }
 
-        // =======================================================
-        // FUNGSI LOGIN ADMIN & KADIS
-        // =======================================================
-        async function loginAdmin(role) {
+        // --- LOGIN ADMIN & KADIS ---
+        async function loginAdmin(role, isAutoLogin = false) {
             let u, p;
             
             if(role === 'admin') {
@@ -532,7 +572,7 @@
                 p = document.getElementById('kadisPass').value;
             }
             
-            showLoading();
+            showLoading(isAutoLogin ? 'Memulihkan Sesi...' : 'Memproses Data...');
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST', body: JSON.stringify({ action: 'staffLogin', user: u, pass: p })
@@ -541,28 +581,34 @@
                 
                 if(res.status === 'success') {
                     currentRole = res.role; 
+                    
+                    // Simpan sesi login admin/kadis
+                    localStorage.setItem('mutasi_session', JSON.stringify({ role: role, id: u, pass: p }));
+
                     Swal.close();
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('adminSection').classList.remove('hidden');
                     document.getElementById('btnLogout').classList.remove('hidden');
                     
-                    Swal.fire({
-                        toast: true, position: 'top-end', icon: 'success',
-                        title: `Selamat datang, ${res.nama}`, showConfirmButton: false, timer: 3000
-                    });
+                    if(!isAutoLogin) {
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'success',
+                            title: `Selamat datang, ${res.nama}`, showConfirmButton: false, timer: 3000
+                        });
+                    }
 
                     loadAdminData();
                 } else if (res.status === 'error') {
+                    if(isAutoLogin) logout();
                     Swal.fire('Login Ditolak', res.message, 'error');
-                } else {
-                    Swal.fire('Error', 'Terjadi kesalahan tidak terduga pada server.', 'error');
                 }
             } catch(e) {
-                Swal.fire('Error', 'Gagal terhubung ke server. Pastikan baris SCRIPT_URL sudah diisi dengan benar.', 'error');
+                if(isAutoLogin) logout();
+                Swal.fire('Error', 'Gagal terhubung ke server.', 'error');
             }
         }
 
-        // --- LOAD DATA ADMIN & GRAFIK ---
+        // --- LOAD DATA ADMIN & GRAFIK (DENGAN EFEK 3D) ---
         async function loadAdminData() {
             document.getElementById('adminTable').querySelector('tbody').innerHTML = '<tr><td colspan="6" class="text-center">Memuat data...</td></tr>';
             
@@ -600,7 +646,6 @@
                         <a href="${row.link5}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
                     `;
                     
-                    // NAMA PEGAWAI DITAMPILKAN DI SINI
                     tr.innerHTML = `<td>${row.tanggal}</td>
                         <td><b>${row.nama}</b><br><small class="text-muted">NIP. ${row.nip}</small></td>
                         <td><b>${row.tujuan}</b><br><small class="text-muted">Kec. ${row.kecamatan}</small></td>
@@ -619,16 +664,58 @@
             if(pieChart) pieChart.destroy();
             if(barChart) barChart.destroy();
 
+            // Efek 3D/Pop-out pada Pie Chart
             const ctxPie = document.getElementById('pieChart').getContext('2d');
             pieChart = new Chart(ctxPie, {
-                type: 'doughnut', data: { labels: ['Pending', 'Disetujui', 'Ditolak'], datasets: [{ data: [p, s, t], backgroundColor: ['#ffc107', '#198754', '#dc3545'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
+                type: 'doughnut', 
+                data: { 
+                    labels: ['Pending', 'Disetujui', 'Ditolak'], 
+                    datasets: [{ 
+                        data: [p, s, t], 
+                        backgroundColor: ['#ffc107', '#198754', '#dc3545'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 15 // Efek animasi membesar seperti 3D saat disentuh
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: { legend: { position: 'bottom' } },
+                    animation: { animateScale: true, animateRotate: true }
+                }
             });
 
+            // Efek Elegan & Animasi pada Bar Chart
             const ctxBar = document.getElementById('barChart').getContext('2d');
             barChart = new Chart(ctxBar, {
-                type: 'bar', data: { labels: Object.keys(chartData), datasets: [{ label: 'Jumlah Mutasi per Kecamatan', data: Object.values(chartData), backgroundColor: '#0d6efd' }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {stepSize: 1} } } }
+                type: 'bar', 
+                data: { 
+                    labels: Object.keys(chartData), 
+                    datasets: [{ 
+                        label: 'Jumlah Mutasi per Kecamatan', 
+                        data: Object.values(chartData), 
+                        backgroundColor: 'rgba(13, 110, 253, 0.85)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1,
+                        borderRadius: 6, // Sudut atas melengkung
+                        hoverBackgroundColor: '#0a58ca' // Berubah gelap saat disentuh
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { 
+                        y: { beginAtZero: true, ticks: {stepSize: 1} },
+                        x: { grid: { display: false } } // Menghilangkan garis vertikal agar bersih
+                    },
+                    animation: {
+                        duration: 1500, // Animasi muncul dari bawah
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: { legend: { display: false } } // Sembunyikan legenda agar lebih lega
+                }
             });
         }
 
@@ -669,6 +756,9 @@
         }
 
         function logout() {
+            // HAPUS SESI LOKAL SAAT KELUAR
+            localStorage.removeItem('mutasi_session');
+
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('pegawaiSection').classList.add('hidden');
             document.getElementById('adminSection').classList.add('hidden');
@@ -678,7 +768,7 @@
             document.getElementById('adminPass').value = '';
             document.getElementById('kadisUser').value = '';
             document.getElementById('kadisPass').value = '';
-            document.getElementById('searchInput').value = ''; // Reset pencarian
+            document.getElementById('searchInput').value = ''; 
             currentRole = '';
         }
 
@@ -688,13 +778,10 @@
             const table = document.getElementById("adminTable");
             const tr = table.getElementsByTagName("tr");
 
-            // Loop semua baris tabel, kecuali baris pertama (header)
             for (let i = 1; i < tr.length; i++) {
-                // Kolom ke-2 (index 1) berisi Nama dan NIP
                 const tdPegawai = tr[i].getElementsByTagName("td")[1];
                 if (tdPegawai) {
                     const textValue = tdPegawai.textContent || tdPegawai.innerText;
-                    // Tampilkan baris jika ada teks yang cocok, sembunyikan jika tidak
                     if (textValue.toLowerCase().indexOf(input) > -1) {
                         tr[i].style.display = "";
                     } else {
