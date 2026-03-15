@@ -233,7 +233,17 @@
             </div>
 
             <div class="card p-4">
-                <h4 class="mb-3">Daftar Pengajuan Mutasi</h4>
+                <div class="row align-items-center mb-3">
+                    <div class="col-md-6 col-12 mb-2 mb-md-0">
+                        <h4 class="mb-0">Daftar Pengajuan Mutasi</h4>
+                    </div>
+                    <div class="col-md-6 col-12">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan Nama atau NIP..." onkeyup="filterTable()">
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered align-middle" id="adminTable">
                         <thead class="table-dark text-center text-nowrap">
@@ -668,7 +678,30 @@
             document.getElementById('adminPass').value = '';
             document.getElementById('kadisUser').value = '';
             document.getElementById('kadisPass').value = '';
+            document.getElementById('searchInput').value = ''; // Reset pencarian
             currentRole = '';
+        }
+
+        // --- FILTER PENCARIAN TABEL ADMIN ---
+        function filterTable() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const table = document.getElementById("adminTable");
+            const tr = table.getElementsByTagName("tr");
+
+            // Loop semua baris tabel, kecuali baris pertama (header)
+            for (let i = 1; i < tr.length; i++) {
+                // Kolom ke-2 (index 1) berisi Nama dan NIP
+                const tdPegawai = tr[i].getElementsByTagName("td")[1];
+                if (tdPegawai) {
+                    const textValue = tdPegawai.textContent || tdPegawai.innerText;
+                    // Tampilkan baris jika ada teks yang cocok, sembunyikan jika tidak
+                    if (textValue.toLowerCase().indexOf(input) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
         }
     </script>
 </body>
