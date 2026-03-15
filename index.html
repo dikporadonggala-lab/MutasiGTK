@@ -234,14 +234,12 @@
 
         <div id="adminSection" class="hidden">
             <div class="row mb-4">
-                <!-- Ukuran kolom Pie Chart di perkecil (col-md-4) -->
                 <div class="col-md-4 mb-3">
                     <div class="card p-3 card-3d h-100">
                         <h5 class="text-center border-bottom pb-2">Persentase Status</h5>
                         <div style="height: 250px; position: relative;"><canvas id="pieChart"></canvas></div>
                     </div>
                 </div>
-                <!-- Ukuran kolom Bar Chart di perlebar (col-md-8) agar 16 kecamatan muat -->
                 <div class="col-md-8 mb-3">
                     <div class="card p-3 card-3d h-100">
                         <h5 class="text-center border-bottom pb-2">Mutasi per Kecamatan</h5>
@@ -638,12 +636,13 @@
                     else if (row.status === 'Disetujui Verifikator') badge = 'bg-primary';
                     else if (row.status === 'Ditolak') badge = 'bg-danger';
                     
+                    // MENAMBAHKAN TITLE PADA ICON PDF AGAR MUNCUL SAAT DISENTUH MOUSE
                     let docLinks = `
-                        <a href="${row.link1}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
-                        <a href="${row.link2}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
-                        <a href="${row.link3}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
-                        <a href="${row.link4}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
-                        <a href="${row.link5}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link1}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="Surat Permohonan"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link2}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="SK Terakhir"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link3}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="SK Pembagian Tugas"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link4}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="Surat Lolos Butuh"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link5}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="Surat Melepas dari Kepsek"><i class="fas fa-file-pdf"></i></a>
                     `;
                     
                     tr.innerHTML = `<td>${row.tanggal}</td>
