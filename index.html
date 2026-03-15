@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Mutasi Internal GTK - Disdikpora Donggala</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-brand { font-weight: bold; letter-spacing: 1px; }
+        .card { border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: none; }
+        .hidden { display: none !important; }
+        .status-badge { font-size: 0.9em; padding: 6px 12px; border-radius: 20px; }
+        .file-upload-wrapper { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 15px; background: #f8fafc;}
+        .file-upload-wrapper input { display: none; }
+        .file-upload-wrapper label { cursor: pointer; color: #0d6efd; font-weight: 500; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #0d6efd; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Penyesuaian Khusus Layar HP (Mobile) */
+        @media (max-width: 576px) {
+            .navbar-brand { font-size: 1rem; }
+            .navbar-brand img { width: 24px; }
+            .card { padding: 15px !important; }
+            .nav-pills .nav-link { margin-bottom: 5px; }
+            h4 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand" href="#">
+                <img src="https://i.ibb.co.com/5xhN0cm1/Logo-Donggala.png" alt="Logo" width="30" class="d-inline-block align-text-top me-2">
+                MUTASI GTK DONGGALA
+            </a>
+            <button class="btn btn-outline-light btn-sm hidden" id="btnLogout" onclick="logout()"><i class="fas fa-sign-out-alt me-1"></i> Keluar</button>
+        </div>
+    </nav>
+
+    <div class="container my-4 my-md-5">
+        
+        <!-- SECTION 1: LOGIN PAGE -->
+        <div id="loginSection" class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card p-4 text-center">
+                    <img src="https://i.ibb.co.com/5xhN0cm1/Logo-Donggala.png" alt="Logo Donggala" width="80" class="mx-auto mb-3">
+                    <h4 class="mb-4">Portal Layanan Mutasi</h4>
+                    
+                    <ul class="nav nav-pills nav-justified flex-column flex-sm-row mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="pills-pegawai-tab" data-bs-toggle="pill" data-bs-target="#pills-pegawai" type="button" role="tab">Pegawai (GTK)</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-admin-tab" data-bs-toggle="pill" data-bs-target="#pills-admin" type="button" role="tab">Verifikator</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link text-success" id="pills-kadis-tab" data-bs-toggle="pill" data-bs-target="#pills-kadis" type="button" role="tab">Kepala Dinas</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-pegawai" role="tabpanel">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                <input type="text" id="nipInput" class="form-control" placeholder="Masukkan NIP (Contoh: 1985xxxx)">
+                            </div>
+                            <button class="btn btn-primary w-100" onclick="loginPegawai()" id="btnLgnPegawai">Masuk</button>
+                        </div>
+                        <div class="tab-pane fade" id="pills-admin" role="tabpanel">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
+                                <input type="text" id="adminUser" class="form-control" placeholder="Username">
+                            </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                <input type="password" id="adminPass" class="form-control" placeholder="Password">
+                            </div>
+                            <button class="btn btn-dark w-100" onclick="loginAdmin('admin')" id="btnLgnAdmin">Masuk Admin</button>
+                        </div>
+                        <div class="tab-pane fade" id="pills-kadis" role="tabpanel">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                <input type="text" id="kadisUser" class="form-control" placeholder="Username Kadis">
+                            </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                <input type="password" id="kadisPass" class="form-control" placeholder="Password Kadis">
+                            </div>
+                            <button class="btn btn-success w-100" onclick="loginAdmin('kadis')" id="btnLgnKadis">Masuk Kepala Dinas</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pegawaiSection" class="hidden">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card p-3 border-top border-primary border-4">
+                        <h5 class="card-title border-bottom pb-2"><i class="fas fa-user-circle me-2"></i>Profil GTK</h5>
+                        <p class="mb-1 text-muted small">Nama Lengkap</p>
+                        <h6 id="p_nama">-</h6>
+                        <p class="mb-1 text-muted small mt-2">NIP</p>
+                        <h6 id="p_nip">-</h6>
+                        <p class="mb-1 text-muted small mt-2">Sekolah Asal</p>
+                        <h6 id="p_sekolah">-</h6>
+                        <p class="mb-1 text-muted small mt-2">Kecamatan Asal</p>
+                        <h6 id="p_kec_asal">-</h6>
+                        <p class="mb-1 text-muted small mt-2">Alamat / Jenis Kelamin</p>
+                        <h6><span id="p_alamat">-</span> / <span id="p_jk">-</span></h6>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card p-4 hidden" id="formUploadSection">
+                        <h4 class="mb-3">Formulir Pengajuan Mutasi</h4>
+                        <div class="alert alert-info small"><i class="fas fa-info-circle me-2"></i>Silakan unggah dokumen dalam format PDF (Maksimal 2MB per file).</div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Sekolah Tujuan</label>
+                                <input type="text" id="sekolahTujuan" class="form-control" placeholder="Contoh: SDN 5 Banawa">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Kecamatan Tujuan</label>
+                                <select id="kecamatanTujuan" class="form-select">
+                                    <option value="">-- Pilih Kecamatan --</option>
+                                    <option value="Banawa">Banawa</option>
+                                    <option value="Banawa Selatan">Banawa Selatan</option>
+                                    <option value="Banawa Tengah">Banawa Tengah</option>
+                                    <option value="Balaesang">Balaesang</option>
+                                    <option value="Balaesang Tanjung">Balaesang Tanjung</option>
+                                    <option value="Dampelas">Dampelas</option>
+                                    <option value="Labuan">Labuan</option>
+                                    <option value="Sindue">Sindue</option>
+                                    <option value="Sindue Tombusabora">Sindue Tombusabora</option>
+                                    <option value="Sindue Tobata">Sindue Tobata</option>
+                                    <option value="Sirenja">Sirenja</option>
+                                    <option value="Sojol">Sojol</option>
+                                    <option value="Sojol Utara">Sojol Utara</option>
+                                    <option value="Tanantovea">Tanantovea</option>
+                                    <option value="Pinembani">Pinembani</option>
+                                    <option value="Rio Pakava">Rio Pakava</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="file-upload-wrapper">
+                                    <label for="f_permohonan"><i class="fas fa-file-pdf fs-3 mb-2"></i><br>Surat Permohonan</label>
+                                    <input type="file" id="f_permohonan" accept="application/pdf" onchange="updateFileName(this, 'l_permohonan')">
+                                    <div id="l_permohonan" class="small text-muted mt-1">Belum ada file</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="file-upload-wrapper">
+                                    <label for="f_sk"><i class="fas fa-file-pdf fs-3 mb-2"></i><br>SK Terakhir</label>
+                                    <input type="file" id="f_sk" accept="application/pdf" onchange="updateFileName(this, 'l_sk')">
+                                    <div id="l_sk" class="small text-muted mt-1">Belum ada file</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="file-upload-wrapper">
+                                    <label for="f_sktugas"><i class="fas fa-file-pdf fs-3 mb-2"></i><br>SK Pembagian Tugas</label>
+                                    <input type="file" id="f_sktugas" accept="application/pdf" onchange="updateFileName(this, 'l_sktugas')">
+                                    <div id="l_sktugas" class="small text-muted mt-1">Belum ada file</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="file-upload-wrapper">
+                                    <label for="f_lolosbutuh"><i class="fas fa-file-pdf fs-3 mb-2"></i><br>Surat Lolos Butuh</label>
+                                    <input type="file" id="f_lolosbutuh" accept="application/pdf" onchange="updateFileName(this, 'l_lolosbutuh')">
+                                    <div id="l_lolosbutuh" class="small text-muted mt-1">Belum ada file</div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="file-upload-wrapper">
+                                    <label for="f_melepas"><i class="fas fa-file-pdf fs-3 mb-2"></i><br>Surat Melepas dari Kepsek</label>
+                                    <input type="file" id="f_melepas" accept="application/pdf" onchange="updateFileName(this, 'l_melepas')">
+                                    <div id="l_melepas" class="small text-muted mt-1">Belum ada file</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-success mt-3" id="btnSubmitMutasi" onclick="submitPengajuan()"><i class="fas fa-paper-plane me-2"></i>Kirim Pengajuan</button>
+                    </div>
+
+                    <div class="card p-4 hidden" id="viewStatusSection">
+                        <h4 class="mb-4">Status Pengajuan Anda</h4>
+                        <div class="text-center mb-4">
+                            <h2 id="s_statusText" class="mb-2">PENDING</h2>
+                            <p class="text-muted" id="s_catatanText">Menunggu verifikasi admin dinas.</p>
+                            <button id="btnCetakSurat" class="btn btn-success mt-3 hidden" onclick="cetakSuratPersetujuan()"><i class="fas fa-print me-2"></i>Cetak Surat Persetujuan</button>
+                        </div>
+                        
+                        <h6 class="border-bottom pb-2">Dokumen Terunggah</h6>
+                        <div class="list-group">
+                            <a href="#" id="l_doc1" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> Surat Permohonan</a>
+                            <a href="#" id="l_doc2" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> SK Terakhir</a>
+                            <a href="#" id="l_doc3" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> SK Pembagian Tugas</a>
+                            <a href="#" id="l_doc4" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> Surat Lolos Butuh</a>
+                            <a href="#" id="l_doc5" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> Surat Melepas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminSection" class="hidden">
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3">
+                        <h5 class="text-center">Persentase Status</h5>
+                        <div style="height: 250px;"><canvas id="pieChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card p-3">
+                        <h5 class="text-center">Mutasi per Kecamatan</h5>
+                        <div style="height: 250px;"><canvas id="barChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h4 class="mb-3">Daftar Pengajuan Mutasi</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle" id="adminTable">
+                        <thead class="table-dark text-center text-nowrap">
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Pegawai</th> 
+                                <th>Sekolah & Kec. Tujuan</th>
+                                <th style="min-width: 220px;">Dokumen PDF</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="adminModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Verifikasi Berkas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="modalNip">
+                    <p>Ubah status pengajuan untuk NIP: <b id="modalNipLabel"></b></p>
+                    <div class="mb-3">
+                        <label>Status</label>
+                        <select class="form-select" id="modalStatus">
+                            </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Catatan Admin</label>
+                        <textarea class="form-control" id="modalCatatan" rows="3" placeholder="Opsional..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAdminAction()">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // =======================================================
+        // URL WEB APP TERBARU ANDA
+        // =======================================================
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyffhNF6yukoX6Va6N7T4BL-88O1lsbWPYvTgVbHQodTVy5YjFdhVKK8kI7MIIf4r7a/exec'; 
+        
+        let currentRole = '';
+        let pegawaiTujuan = '';
+        let pegawaiKecTujuan = ''; 
+
+        function updateFileName(input, labelId) {
+            const fileName = input.files[0] ? input.files[0].name : "Belum ada file";
+            document.getElementById(labelId).innerText = fileName;
+        }
+
+        const getBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
+        });
+
+        const showLoading = () => {
+            Swal.fire({ title: 'Memproses Data...', html: 'Mohon tunggu sebentar', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+        };
+
+        // --- LOGIN PEGAWAI ---
+        async function loginPegawai() {
+            const nip = document.getElementById('nipInput').value;
+            if(!nip) return Swal.fire('Error', 'Masukkan NIP terlebih dahulu', 'error');
+
+            showLoading();
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', nip: nip }) });
+                const res = await response.json();
+                
+                if(res.status === 'success') {
+                    Swal.close();
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('pegawaiSection').classList.remove('hidden');
+                    document.getElementById('btnLogout').classList.remove('hidden');
+
+                    document.getElementById('p_nama').innerText = res.data.nama;
+                    document.getElementById('p_nip').innerText = res.data.nip;
+                    document.getElementById('p_sekolah').innerText = res.data.sekolahAsal;
+                    document.getElementById('p_kec_asal').innerText = res.data.kecamatanAsal || '-';
+                    document.getElementById('p_alamat').innerText = res.data.alamat;
+                    document.getElementById('p_jk').innerText = res.data.jk;
+
+                    if(res.hasPengajuan) {
+                        document.getElementById('viewStatusSection').classList.remove('hidden');
+                        document.getElementById('formUploadSection').classList.add('hidden');
+                        
+                        pegawaiTujuan = res.pengajuanData.tujuan;
+                        pegawaiKecTujuan = res.pengajuanData.kecamatan;
+
+                        let badgeColor = 'text-warning';
+                        let displayText = res.pengajuanData.status.toUpperCase();
+                        let displayCatatan = res.pengajuanData.catatan || "Tidak ada catatan admin.";
+
+                        if(res.pengajuanData.status === 'Pending') {
+                            badgeColor = 'text-warning fs-5 lh-base';
+                            displayText = "SELAMAT, Anda baru saja bermohon dan kami akan segera melakukan proses verifikasi berkas Anda. Mohon BERSABAR dalam antrian.";
+                            displayCatatan = ""; 
+                        } 
+                        else if(res.pengajuanData.status === 'Disetujui Kadis') {
+                            badgeColor = 'text-success';
+                        } 
+                        else if(res.pengajuanData.status === 'Disetujui Verifikator') {
+                            badgeColor = 'text-primary';
+                        } 
+                        else if(res.pengajuanData.status === 'Ditolak') {
+                            badgeColor = 'text-danger';
+                        }
+                        
+                        document.getElementById('s_statusText').innerHTML = `<span class="${badgeColor}">${displayText}</span>`;
+                        document.getElementById('s_catatanText').innerText = displayCatatan;
+                        
+                        if(res.pengajuanData.status === 'Disetujui Kadis') {
+                            document.getElementById('btnCetakSurat').classList.remove('hidden');
+                        } else {
+                            document.getElementById('btnCetakSurat').classList.add('hidden');
+                        }
+
+                        document.getElementById('l_doc1').href = res.pengajuanData.link1;
+                        document.getElementById('l_doc2').href = res.pengajuanData.link2;
+                        document.getElementById('l_doc3').href = res.pengajuanData.link3;
+                        document.getElementById('l_doc4').href = res.pengajuanData.link4;
+                        document.getElementById('l_doc5').href = res.pengajuanData.link5;
+                    } else {
+                        document.getElementById('formUploadSection').classList.remove('hidden');
+                        document.getElementById('viewStatusSection').classList.add('hidden');
+                    }
+                } else if (res.status === 'error') {
+                    Swal.fire('Gagal', res.message, 'error');
+                } else {
+                    Swal.fire('Backend Error', 'Terjadi kesalahan sistem, silakan coba beberapa saat lagi.', 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Gagal terhubung ke server. Pastikan koneksi internet stabil.', 'error');
+            }
+        }
+
+        // --- CETAK SURAT ---
+        function cetakSuratPersetujuan() {
+            const nama = document.getElementById('p_nama').innerText;
+            const nip = document.getElementById('p_nip').innerText;
+            const asal = document.getElementById('p_sekolah').innerText;
+            const tujuan = pegawaiTujuan;
+            
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const tanggal = new Date().toLocaleDateString('id-ID', options);
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Surat Persetujuan Mutasi - ${nama}</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; padding: 40px 60px; line-height: 1.6; color: black; }
+                        .header-table { width: 100%; border-bottom: 3px solid black; margin-bottom: 2px; }
+                        .header-table td { padding-bottom: 10px; }
+                        .header-text { text-align: center; }
+                        .header-text h2 { margin: 0; font-size: 20px; text-transform: uppercase; }
+                        .header-text h1 { margin: 5px 0; font-size: 24px; font-weight: bold; }
+                        .header-text p { margin: 0; font-size: 14px; }
+                        .double-line { border-top: 1px solid black; margin-bottom: 30px; }
+                        .title { text-align: center; margin-bottom: 30px; }
+                        .title h3 { text-decoration: underline; margin: 0; font-size: 18px; }
+                        .title p { margin: 5px 0 0 0; }
+                        .content { text-align: justify; font-size: 16px; }
+                        .content table { margin: 15px 0 20px 30px; font-size: 16px; }
+                        .content table td { padding: 4px; vertical-align: top; }
+                        .signature { float: right; width: 300px; text-align: left; margin-top: 50px; }
+                        @media print { body { -webkit-print-color-adjust: exact; padding: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <table class="header-table">
+                        <tr>
+                            <td width="120" style="text-align: center; vertical-align: middle;">
+                                <img src="https://i.ibb.co.com/5xhN0cm1/Logo-Donggala.png" alt="Logo Donggala" width="95">
+                            </td>
+                            <td class="header-text" style="vertical-align: middle;">
+                                <h2>Pemerintah Kabupaten Donggala</h2>
+                                <h1>DINAS PENDIDIKAN PEMUDA DAN OLAHRAGA</h1>
+                                <p>Jl. Pusat Pemerintahan, Banawa, Kabupaten Donggala, Sulawesi Tengah</p>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="double-line"></div>
+                    <div class="title">
+                        <h3>SURAT PERSETUJUAN MUTASI INTERNAL</h3>
+                        <p>Nomor: 800/ ..... / DISDIKPORA / ${new Date().getFullYear()}</p>
+                    </div>
+                    <div class="content">
+                        <p>Berdasarkan hasil verifikasi dan evaluasi terhadap permohonan mutasi internal tenaga pendidik, Kepala Dinas Pendidikan Pemuda dan Olahraga Kabupaten Donggala dengan ini memberikan persetujuan pindah tugas kepada Pegawai Negeri Sipil / Pegawai Pemerintah dengan Perjanjian Kerja di bawah ini:</p>
+                        <table>
+                            <tr><td width="160">Nama</td><td>: <b>${nama}</b></td></tr>
+                            <tr><td>NIP</td><td>: ${nip}</td></tr>
+                            <tr><td>Sekolah Asal</td><td>: ${asal}</td></tr>
+                            <tr><td>Sekolah Tujuan</td><td>: ${tujuan}</td></tr>
+                        </table>
+                        <p>Persetujuan ini diberikan sebagai dasar bagi pegawai yang bersangkutan untuk diproses lebih lanjut ke Badan Kepegawaian Daerah (BKD) Kabupaten Donggala, guna penerbitan Surat Keputusan (SK) Definitif pemindahan tugas dari Bupati Donggala.</p>
+                        <p>Demikian surat persetujuan mutasi ini dibuat untuk dapat dipergunakan sebagaimana mestinya dan penuh tanggung jawab.</p>
+                    </div>
+                    <div class="signature">
+                        <p>Donggala, ${tanggal}<br><b>Kepala Dinas Pendidikan Pemuda dan Olahraga<br>Kabupaten Donggala</b></p>
+                        <br><br><br><br>
+                        <p><u><b>ANSYAR SUTIADI, S. Sos., M.Si</b></u><br>Pangkat. Pembina Utama Muda (IV/c)<br>NIP. 19721213 199203 1 004</p>
+                    </div>
+                    <script>window.onload = function() { window.print(); }<\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        // --- UPLOAD PENGAJUAN ---
+        async function submitPengajuan() {
+            const tujuan = document.getElementById('sekolahTujuan').value;
+            const kecamatan = document.getElementById('kecamatanTujuan').value;
+            const f1 = document.getElementById('f_permohonan').files[0];
+            const f2 = document.getElementById('f_sk').files[0];
+            const f3 = document.getElementById('f_sktugas').files[0];
+            const f4 = document.getElementById('f_lolosbutuh').files[0];
+            const f5 = document.getElementById('f_melepas').files[0];
+
+            if(!tujuan || !kecamatan || !f1 || !f2 || !f3 || !f4 || !f5) return Swal.fire('Peringatan', 'Harap isi sekolah tujuan, kecamatan, dan unggah kelima dokumen (PDF)!', 'warning');
+            
+            const maxSize = 2 * 1024 * 1024; 
+            if(f1.size > maxSize || f2.size > maxSize || f3.size > maxSize || f4.size > maxSize || f5.size > maxSize) {
+                return Swal.fire('Peringatan', 'Ukuran salah satu file melebihi 2MB. Silakan kompres PDF Anda.', 'warning');
+            }
+
+            showLoading();
+            try {
+                const b1 = await getBase64(f1); const b2 = await getBase64(f2);
+                const b3 = await getBase64(f3); const b4 = await getBase64(f4);
+                const b5 = await getBase64(f5);
+
+                const payload = {
+                    action: 'upload', nip: document.getElementById('p_nip').innerText, nama: document.getElementById('p_nama').innerText, 
+                    tujuan: tujuan, kecamatan: kecamatan, 
+                    files: [
+                        {name: `Permohonan_${document.getElementById('p_nip').innerText}.pdf`, data: b1, mimeType: f1.type},
+                        {name: `SK_${document.getElementById('p_nip').innerText}.pdf`, data: b2, mimeType: f2.type},
+                        {name: `SKTugas_${document.getElementById('p_nip').innerText}.pdf`, data: b3, mimeType: f3.type},
+                        {name: `LolosButuh_${document.getElementById('p_nip').innerText}.pdf`, data: b4, mimeType: f4.type},
+                        {name: `Melepas_${document.getElementById('p_nip').innerText}.pdf`, data: b5, mimeType: f5.type}
+                    ]
+                };
+
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const res = await response.json();
+
+                if(res.status === 'success') {
+                    Swal.fire('Berhasil', 'Dokumen berhasil diunggah.', 'success').then(() => loginPegawai());
+                } else { Swal.fire('Gagal', res.message, 'error'); }
+            } catch(e) { Swal.fire('Error', 'Gagal mengunggah. Pastikan koneksi stabil.', 'error'); }
+        }
+
+        // =======================================================
+        // FUNGSI LOGIN ADMIN & KADIS
+        // =======================================================
+        async function loginAdmin(role) {
+            let u, p;
+            
+            if(role === 'admin') {
+                u = document.getElementById('adminUser').value;
+                p = document.getElementById('adminPass').value;
+            } else {
+                u = document.getElementById('kadisUser').value;
+                p = document.getElementById('kadisPass').value;
+            }
+            
+            showLoading();
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'staffLogin', user: u, pass: p })
+                });
+                const res = await response.json();
+                
+                if(res.status === 'success') {
+                    currentRole = res.role; 
+                    Swal.close();
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('adminSection').classList.remove('hidden');
+                    document.getElementById('btnLogout').classList.remove('hidden');
+                    
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'success',
+                        title: `Selamat datang, ${res.nama}`, showConfirmButton: false, timer: 3000
+                    });
+
+                    loadAdminData();
+                } else if (res.status === 'error') {
+                    Swal.fire('Login Ditolak', res.message, 'error');
+                } else {
+                    Swal.fire('Error', 'Terjadi kesalahan tidak terduga pada server.', 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Gagal terhubung ke server. Pastikan baris SCRIPT_URL sudah diisi dengan benar.', 'error');
+            }
+        }
+
+        // --- LOAD DATA ADMIN & GRAFIK ---
+        async function loadAdminData() {
+            document.getElementById('adminTable').querySelector('tbody').innerHTML = '<tr><td colspan="6" class="text-center">Memuat data...</td></tr>';
+            
+            const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'getAdminData' }) });
+            const res = await response.json();
+            
+            if(res.status === 'success') {
+                const tbody = document.getElementById('adminTable').querySelector('tbody');
+                tbody.innerHTML = '';
+                
+                let countPending = 0, countSetuju = 0, countTolak = 0;
+                let kecamatanCounts = {}; 
+
+                res.data.forEach(row => {
+                    if (currentRole === 'kadis' && (row.status === 'Pending' || row.status === 'Ditolak')) return;
+
+                    if(row.status === 'Pending') countPending++;
+                    else if(row.status === 'Disetujui Kadis' || row.status === 'Disetujui Verifikator') countSetuju++;
+                    else if(row.status === 'Ditolak') countTolak++;
+
+                    let kec = row.kecamatan || "Belum Ada Data";
+                    kecamatanCounts[kec] = (kecamatanCounts[kec] || 0) + 1;
+
+                    const tr = document.createElement('tr');
+                    let badge = 'bg-warning text-dark';
+                    if (row.status === 'Disetujui Kadis') badge = 'bg-success';
+                    else if (row.status === 'Disetujui Verifikator') badge = 'bg-primary';
+                    else if (row.status === 'Ditolak') badge = 'bg-danger';
+                    
+                    let docLinks = `
+                        <a href="${row.link1}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link2}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link3}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link4}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link5}" target="_blank" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-file-pdf"></i></a>
+                    `;
+                    
+                    // NAMA PEGAWAI DITAMPILKAN DI SINI
+                    tr.innerHTML = `<td>${row.tanggal}</td>
+                        <td><b>${row.nama}</b><br><small class="text-muted">NIP. ${row.nip}</small></td>
+                        <td><b>${row.tujuan}</b><br><small class="text-muted">Kec. ${row.kecamatan}</small></td>
+                        <td>${docLinks}</td>
+                        <td><span class="badge ${badge}">${row.status}</span></td>
+                        <td><button class="btn btn-sm btn-dark" onclick="openModal('${row.nip}', '${row.status}', '${row.catatan}')"><i class="fas fa-edit"></i> Aksi</button></td>`;
+                    tbody.appendChild(tr);
+                });
+
+                renderCharts(countPending, countSetuju, countTolak, kecamatanCounts);
+            }
+        }
+
+        let pieChart, barChart;
+        function renderCharts(p, s, t, chartData) {
+            if(pieChart) pieChart.destroy();
+            if(barChart) barChart.destroy();
+
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(ctxPie, {
+                type: 'doughnut', data: { labels: ['Pending', 'Disetujui', 'Ditolak'], datasets: [{ data: [p, s, t], backgroundColor: ['#ffc107', '#198754', '#dc3545'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(ctxBar, {
+                type: 'bar', data: { labels: Object.keys(chartData), datasets: [{ label: 'Jumlah Mutasi per Kecamatan', data: Object.values(chartData), backgroundColor: '#0d6efd' }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {stepSize: 1} } } }
+            });
+        }
+
+        const myModal = new bootstrap.Modal(document.getElementById('adminModal'));
+        function openModal(nip, status, catatan) {
+            document.getElementById('modalNip').value = nip;
+            document.getElementById('modalNipLabel').innerText = nip;
+            document.getElementById('modalCatatan').value = catatan !== 'undefined' ? catatan : '';
+            
+            const selectStatus = document.getElementById('modalStatus');
+            selectStatus.innerHTML = ''; 
+
+            if (currentRole === 'admin') {
+                selectStatus.innerHTML = `<option value="Pending">Pending</option><option value="Disetujui Verifikator">Disetujui Verifikator</option><option value="Ditolak">Ditolak</option>`;
+            } else if (currentRole === 'kadis') {
+                selectStatus.innerHTML = `<option value="Disetujui Verifikator">Disetujui Verifikator</option><option value="Disetujui Kadis">Disetujui Kadis</option><option value="Ditolak">Ditolak</option>`;
+            }
+            
+            if (selectStatus.querySelector(`option[value="${status}"]`)) selectStatus.value = status;
+            myModal.show();
+        }
+
+        async function saveAdminAction() {
+            const nip = document.getElementById('modalNip').value;
+            const status = document.getElementById('modalStatus').value;
+            const catatan = document.getElementById('modalCatatan').value;
+
+            myModal.hide();
+            showLoading();
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', nip: nip, status: status, catatan: catatan }) });
+                const res = await response.json();
+                
+                if(res.status === 'success') { Swal.fire('Berhasil', 'Status diperbarui', 'success'); loadAdminData(); } 
+                else { Swal.fire('Gagal', res.message, 'error'); }
+            } catch(e) { Swal.fire('Error', 'Gagal terhubung ke server', 'error'); }
+        }
+
+        function logout() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('pegawaiSection').classList.add('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('btnLogout').classList.add('hidden');
+            document.getElementById('nipInput').value = '';
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
+            document.getElementById('kadisUser').value = '';
+            document.getElementById('kadisPass').value = '';
+            currentRole = '';
+        }
+    </script>
+</body>
+</html>
