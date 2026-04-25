@@ -93,15 +93,14 @@
         <div id="loginSection" class="row justify-content-center">
             <div class="col-md-5">
                 <div class="card p-4 text-center">
-                    <img src="https://i.ibb.co.com/5xhN0cm1/Logo-Donggala.png" alt="Logo Donggala" width="80" class="mx-auto mb-3">
+                    <!-- LOGO DIBUAT MENJADI TOMBOL RAHASIA UNTUK ADMIN -->
+                    <img src="https://i.ibb.co.com/5xhN0cm1/Logo-Donggala.png" alt="Logo Donggala" width="80" class="mx-auto mb-3" style="cursor: pointer;" onclick="toggleAdminLogin(event)" title="Klik untuk akses petugas">
                     <h4 class="mb-4">Portal Layanan Mutasi</h4>
                     
-                    <ul class="nav nav-pills nav-justified flex-column flex-sm-row mb-3" id="pills-tab" role="tablist">
+                    <!-- Tabs Admin & Kadis (Sengaja disembunyikan secara default) -->
+                    <ul class="nav nav-pills nav-justified flex-column flex-sm-row mb-3 d-none" id="admin-tabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="pills-pegawai-tab" data-bs-toggle="pill" data-bs-target="#pills-pegawai" type="button" role="tab">Pegawai (GTK)</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="pills-admin-tab" data-bs-toggle="pill" data-bs-target="#pills-admin" type="button" role="tab">Verifikator</button>
+                            <button class="nav-link active" id="pills-admin-tab" data-bs-toggle="pill" data-bs-target="#pills-admin" type="button" role="tab">Verifikator</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link text-success" id="pills-kadis-tab" data-bs-toggle="pill" data-bs-target="#pills-kadis" type="button" role="tab">Kepala Dinas</button>
@@ -109,6 +108,7 @@
                     </ul>
                     
                     <div class="tab-content" id="pills-tabContent">
+                        <!-- Default: Hanya Form Pegawai yang tampil -->
                         <div class="tab-pane fade show active" id="pills-pegawai" role="tabpanel">
                             <div class="input-group mb-3">
                                 <span class="input-group-text"><i class="fas fa-id-card"></i></span>
@@ -116,17 +116,21 @@
                             </div>
                             <button class="btn btn-primary w-100" onclick="loginPegawai()" id="btnLgnPegawai">Masuk</button>
                         </div>
+
+                        <!-- Form Admin (Tersembunyi) -->
                         <div class="tab-pane fade" id="pills-admin" role="tabpanel">
                             <div class="input-group mb-3">
                                 <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
-                                <input type="text" id="adminUser" class="form-control" placeholder="Username">
+                                <input type="text" id="adminUser" class="form-control" placeholder="Username Verifikator">
                             </div>
                             <div class="input-group mb-3">
                                 <span class="input-group-text"><i class="fas fa-key"></i></span>
                                 <input type="password" id="adminPass" class="form-control" placeholder="Password">
                             </div>
-                            <button class="btn btn-dark w-100" onclick="loginAdmin('admin')" id="btnLgnAdmin">Masuk Admin</button>
+                            <button class="btn btn-dark w-100" onclick="loginAdmin('admin')" id="btnLgnAdmin">Masuk Verifikator</button>
                         </div>
+
+                        <!-- Form Kadis (Tersembunyi) -->
                         <div class="tab-pane fade" id="pills-kadis" role="tabpanel">
                             <div class="input-group mb-3">
                                 <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
@@ -139,6 +143,8 @@
                             <button class="btn btn-success w-100" onclick="loginAdmin('kadis')" id="btnLgnKadis">Masuk Kepala Dinas</button>
                         </div>
                     </div>
+
+                    <!-- TULISAN AKSES PETUGAS DINAS TELAH DIHAPUS DARI SINI -->
                 </div>
             </div>
         </div>
@@ -231,7 +237,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="file-upload-wrapper">
-                                    <label for="f_sktugas"><i class="fas fa-file-pdf fs-3 mb-2"></i><br>SK Pembagian Tugas</label>
+                                    <label for="f_sktugas"><i class="fas fa-file-pdf fs-3 mb-2"></i><br>Daftar Keadaan Guru (DKG) Sekolah Sekarang & Sekolah Tujuan</label>
                                     <input type="file" id="f_sktugas" accept="application/pdf" onchange="updateFileName(this, 'l_sktugas')">
                                     <div id="l_sktugas" class="small text-muted mt-1">Belum ada file</div>
                                 </div>
@@ -266,7 +272,7 @@
                         <div class="list-group">
                             <a href="#" id="l_doc1" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> Surat Permohonan</a>
                             <a href="#" id="l_doc2" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> SK Terakhir</a>
-                            <a href="#" id="l_doc3" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> SK Pembagian Tugas</a>
+                            <a href="#" id="l_doc3" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> Daftar Keadaan Guru (DKG) Sekolah Sekarang & Sekolah Tujuan</a>
                             <a href="#" id="l_doc4" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> Surat Lolos Butuh</a>
                             <a href="#" id="l_doc5" target="_blank" class="list-group-item list-group-item-action"><i class="fas fa-file-pdf text-danger me-2"></i> Surat Melepas</a>
                         </div>
@@ -359,7 +365,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXHT-Qx4KPsJQWFXB1VqV2hUCWeMhX6wlpfBiflrjWv5t4ZRhP2mRBlrqb9Fnyzny-/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuaTNx4_u2PyVDCwoXxA7EkEu57TBD0-lcuXsuKIHmYZcAfuY206LEaOOjzdkgXcJH/exec'; 
         
         let currentRole = '';
         let pegawaiTujuan = '';
@@ -370,10 +376,9 @@
             const session = localStorage.getItem('mutasi_session');
             if (session) {
                 const data = JSON.parse(session);
-                // Jika data ditemukan, isi form dan jalankan fungsi login otomatis
                 if (data.role === 'pegawai') {
                     document.getElementById('nipInput').value = data.id;
-                    loginPegawai(true); // pass 'true' agar tidak muncul alert "Berhasil" dobel saat auto-login
+                    loginPegawai(true); 
                 } else if (data.role === 'admin') {
                     document.getElementById('adminUser').value = data.id;
                     document.getElementById('adminPass').value = data.pass;
@@ -385,6 +390,31 @@
                 }
             }
         });
+
+        // --- FUNGSI MUNCULKAN FORM ADMIN ---
+        function toggleAdminLogin(e) {
+            if(e) e.preventDefault();
+            const adminTabs = document.getElementById('admin-tabs');
+            const pegawaPane = document.getElementById('pills-pegawai');
+            const adminPane = document.getElementById('pills-admin');
+            const kadisPane = document.getElementById('pills-kadis');
+
+            if (adminTabs.classList.contains('d-none')) {
+                // Tampilkan menu Admin
+                adminTabs.classList.remove('d-none');
+                pegawaPane.classList.remove('show', 'active');
+                adminPane.classList.add('show', 'active');
+                
+                document.getElementById('pills-admin-tab').classList.add('active');
+                document.getElementById('pills-kadis-tab').classList.remove('active');
+            } else {
+                // Kembali ke menu Pegawai
+                adminTabs.classList.add('d-none');
+                adminPane.classList.remove('show', 'active');
+                kadisPane.classList.remove('show', 'active');
+                pegawaPane.classList.add('show', 'active');
+            }
+        }
 
         function updateFileName(input, labelId) {
             const fileName = input.files[0] ? input.files[0].name : "Belum ada file";
@@ -589,7 +619,7 @@
                     files: [
                         {name: `Permohonan_${document.getElementById('p_nip').innerText}.pdf`, data: b1, mimeType: f1.type},
                         {name: `SK_${document.getElementById('p_nip').innerText}.pdf`, data: b2, mimeType: f2.type},
-                        {name: `SKTugas_${document.getElementById('p_nip').innerText}.pdf`, data: b3, mimeType: f3.type},
+                        {name: `DKG_${document.getElementById('p_nip').innerText}.pdf`, data: b3, mimeType: f3.type},
                         {name: `LolosButuh_${document.getElementById('p_nip').innerText}.pdf`, data: b4, mimeType: f4.type},
                         {name: `Melepas_${document.getElementById('p_nip').innerText}.pdf`, data: b5, mimeType: f5.type}
                     ]
@@ -694,7 +724,7 @@
                     let docLinks = `
                         <a href="${row.link1}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="Surat Permohonan"><i class="fas fa-file-pdf"></i></a>
                         <a href="${row.link2}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="SK Terakhir"><i class="fas fa-file-pdf"></i></a>
-                        <a href="${row.link3}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="SK Pembagian Tugas"><i class="fas fa-file-pdf"></i></a>
+                        <a href="${row.link3}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="Daftar Keadaan Guru (DKG) Sekolah Sekarang & Sekolah Tujuan"><i class="fas fa-file-pdf"></i></a>
                         <a href="${row.link4}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="Surat Lolos Butuh"><i class="fas fa-file-pdf"></i></a>
                         <a href="${row.link5}" target="_blank" class="btn btn-sm btn-outline-danger m-1" title="Surat Melepas dari Kepsek"><i class="fas fa-file-pdf"></i></a>
                     `;
@@ -702,15 +732,18 @@
                     // FORMAT TOMBOL WA
                     let waDisplay = '-';
                     if (row.wa && row.wa !== '-' && row.wa.length > 5) {
-                        // Ubah awalan 0 menjadi 62 agar link wa.me berfungsi
                         let waNumber = row.wa.replace(/^0/, '62').replace(/[^0-9]/g, '');
                         waDisplay = `<a href="https://wa.me/${waNumber}" target="_blank" class="btn btn-sm btn-outline-success text-nowrap"><i class="fab fa-whatsapp"></i> Chat WA</a>`;
                     }
                     
+                    // Filter agar tidak muncul kata "undefined" jika lupa Deploy
+                    let d_sekAsal = row.sekolahAsal ? row.sekolahAsal : "Menunggu Update Server";
+                    let d_kecAsal = row.kecAsal ? row.kecAsal : "Belum Deploy Versi Baru";
+                    
                     tr.innerHTML = `<td>${row.tanggal}</td>
                         <td><b>${row.nama}</b><br><small class="text-muted">NIP. ${row.nip}</small></td>
                         <td>${waDisplay}</td>
-                        <td><b>${row.sekolahAsal}</b><br><small class="text-muted">Kec. ${row.kecAsal}</small></td>
+                        <td><b>${d_sekAsal}</b><br><small class="text-muted">Kec. ${d_kecAsal}</small></td>
                         <td><b>${row.tujuan}</b><br><small class="text-muted">Kec. ${row.kecamatan}</small></td>
                         <td>${docLinks}</td>
                         <td><span class="badge ${badge}">${row.status}</span></td>
@@ -849,6 +882,12 @@
             document.getElementById('kadisPass').value = '';
             document.getElementById('searchInput').value = ''; 
             currentRole = '';
+
+            // Kembalikan ke form pegawai jika sebelumnya di form admin
+            const adminTabs = document.getElementById('admin-tabs');
+            if(!adminTabs.classList.contains('d-none')) {
+                toggleAdminLogin();
+            }
         }
 
         // --- FILTER PENCARIAN TABEL ADMIN ---
